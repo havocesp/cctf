@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
  CCTF
-
  - Author:      Daniel J. Umpierrez
  - Created:     08-10-20018
  - License:     MIT

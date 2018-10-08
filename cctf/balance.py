@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
- $Project_name
- - Author:      $Author
- - Created:     $Date
- - License:     $License
+ CCTF
+ - Author:      Daniel J. Umpierrez
+ - Created:     08-10-2018
+ - License:     MIT
 """
 import collections as col
 import typing as tp
