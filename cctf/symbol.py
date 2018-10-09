@@ -9,12 +9,11 @@ import json
 import pathlib as path
 import time
 from collections import UserDict
-from logging import getLogger, INFO
 
 import cryptocmp as ccmp
+from logging4humans.core import Logger
 
-log = getLogger('{}: {}'.format(__package__, __file__.split('/')[-1].split('.')[0]))
-log.setLevel(INFO)
+log = Logger('CCTF', 'INFO')
 
 CURRENCIES = dict()
 
