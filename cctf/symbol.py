@@ -28,6 +28,7 @@ class Currency(str):
 
     def __new__(cls, s):
 
+        # noinspection PyArgumentList
         return str.__new__(cls, str(s).upper())
 
     def __add__(self, other):
@@ -130,7 +131,7 @@ class Symbol(str):
             symbol = '{base}/{quote}'.format(**kwargs)
         elif kwargs.get('base') and kwargs.get('base') != 'BTC':
             symbol = '{base}/BTC'.format(**kwargs)
-
+        # noinspection PyArgumentList
         return str.__new__(cls, str(symbol).upper())
 
     @property
@@ -349,9 +350,6 @@ class Currencies(UserDict):
 # noinspection PyUnusedClass
 class Symbols(UserDict):
     pass
-    # def __init__(self, **kwargs):
-    #     self._data = ccmp.CryptoCmp
-    #     super().__init__(**kwargs)
 
 
 # noinspection PyRedeclaration
