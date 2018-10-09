@@ -8,8 +8,6 @@
 import collections as col
 import typing as tp
 
-_float = float
-
 
 def flt(value, p=None, as_str=False):
     """
@@ -27,10 +25,10 @@ def flt(value, p=None, as_str=False):
 
     if '.' in value_str:
         template = '{{:.{:d}f}}'.format(p or infer_precision(value))
-        value = template.format(_float(value_str)).rstrip('.0')
+        value = template.format(float(value_str)).rstrip('.0')
         backup = str(value)
         try:
-            value = value if as_str else _float(value)
+            value = value if as_str else float(value)
         except ValueError:
             value = backup
         return value
@@ -44,14 +42,14 @@ def infer_precision(number):
     """
 
     :param float number:
-    :return:
+    :return int:
     """
     number = number or 0.0
     try:
-        number = _float(number)
+        number = float(number)
     except ValueError:
         return number
-    if number is not None and isinstance(number, _float):
+    if number is not None and isinstance(number, float):
         if number < 0.000001:
             return 10
         elif number < 0.0001:
@@ -88,8 +86,8 @@ def num2str(n, precision=8):
                 n = backup
         elif isinstance(n, str):
             n = flt(n, precision, as_str=True)
-        elif isinstance(n, tp.Mapping):
+        elif isinstance(n, col.Mapping):
             n = {k: num2str(v, precision) if isinstance(v, col.Iterable) else v for k, v in dict(n).items()}
-        elif isinstance(n, tp.Iterable):
+        elif isinstance(n, col.Iterable):
             n = [num2str(n, precision) if isinstance(n, col.Iterable) else n for n in list(n)]
     return n
