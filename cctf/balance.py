@@ -210,3 +210,6 @@ class Wallet(tp.Dict[str, Balance]):
             for fcoin, tcoin in prices.items():
                 result += tcoin[str(as_currency)] * self.get(fcoin)['total']
             return Balance(currency=as_currency, total=result)
+
+    def __contains__(self, item):
+        return str(item) in self.keys()
