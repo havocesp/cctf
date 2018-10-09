@@ -93,7 +93,6 @@ class Markets(collections.UserDict):
             m = Market(**v)
 
             data.update({k: m})
-        # data = {k: Market(**{x: y for x,y in  v.items() if y}) for k, v in kwargs.items()}
 
         super().__init__(**data)
 
@@ -116,18 +115,6 @@ class Ticker(collections.UserDict):
         self.percentage = self.data.get('percentage', 0.0)
         self.id = self.data.get('percentage', '')
         self._info = self.data.get('info', dict())
-    #
-    # def __getattr__(self, item):
-    #     if item in self.keys():
-    #         return self.get(item)
-    #     else:
-    #         raise AttributeError()
-    #
-    # def __setattr__(self, key, value):
-    #     if key in self.keys():
-    #         self.update({key: value})
-    #     else:
-    #         raise AttributeError()
 
 
 class Tickers(collections.UserDict):
@@ -139,15 +126,3 @@ class Tickers(collections.UserDict):
             data[k] = Ticker(**v)
 
         super().__init__(**data)
-
-    # def __getattr__(self, item):
-    #     if item in self.keys():
-    #         return self.get(item)
-    #     else:
-    #         raise AttributeError()
-    #
-    # def __setattr__(self, key, value):
-    #     if key in self.keys():
-    #         self.update({key: value})
-    #     else:
-    #         raise AttributeError()
