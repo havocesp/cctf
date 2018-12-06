@@ -8,7 +8,7 @@
 import collections as col
 import typing as tp
 
-from cryptocmp import CryptoCmp
+from cryptocmpy import CryptoCmpy
 
 from cctf.symbol import Currency, CURRENCIES
 from cctf.utils import num2str
