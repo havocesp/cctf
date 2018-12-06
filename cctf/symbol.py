@@ -10,7 +10,7 @@ import pathlib as path
 import time
 from collections import UserDict
 
-import cryptocmp as ccmp
+import cryptocmpy as ccmp
 from logging4humans.core import Logger
 
 log = Logger('CCTF', 'INFO')
