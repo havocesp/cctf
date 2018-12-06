@@ -325,13 +325,13 @@ class Currencies(UserDict):
             else:
                 # overwrite cache file with new content
                 log.debug('Cache file is too old, updating ...')
-                data = ccmp.CryptoCmp.get_coin_list() or dict()
+                data = ccmp.CryptoCmpy.get_coin_list() or dict()
                 with open(str(currencies_cache_file), 'wt') as fp:
                     json.dump(data, fp)
         else:
             # generate a new cache file
             log.debug('No cache file was found, creating a new one at: {}'.format(str(currencies_cache_file)))
-            data = ccmp.CryptoCmp.get_coin_list() or dict()
+            data = ccmp.CryptoCmpy.get_coin_list() or dict()
             with open(str(currencies_cache_file), 'wt') as fp:
                 json.dump(data, fp)
         return data
