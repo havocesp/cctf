@@ -1,2 +1,2 @@
-git+https://github.com/havocesp/cryptocmp
+git+https://github.com/havocesp/cryptocmpy
 git+https://github.com/havocesp/logging4humans
