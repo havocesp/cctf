@@ -3,7 +3,7 @@
 Crypto-Currencies Trading Framework.
 
  - Author: Daniel J. Umpierrez
- - License: MIT
+ - License: UNLICENSE
  - Version: 0.1.1
 
 ## Description
@@ -16,7 +16,7 @@ A Python3 trading framework with some useful features.
  - [ccxt](https://github.com/ccxt/ccxt)
  - [pandas](https://github.com/pandas-dev/pandas)
  - [tulipy](https://github.com/cirla/tulipy)
- - [cryptocmp](https://github.com/havocesp/cryptocmp)
+ - [cryptocmpy](https://github.com/havocesp/cryptocmpy)
  - [logging4hummans](https://github.com/havocesp/logging4hummans)
 
 ## Installation

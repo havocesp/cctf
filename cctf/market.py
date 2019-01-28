@@ -3,19 +3,18 @@
  CCTF
  - Author:      Daniel J. Umpierrez
  - Created:     08-10-2018
- - License:     MIT
+ - License:     UNLICENSE
 """
-import collections
+import collections as col
 
-from cctf.core import Precision, Limits
-from cctf.symbol import Symbol, Currency
+from cctf.base import Precision, Limit, BaseDict
+from cctf.symbol import Symbol
 
 __all__ = ['Markets', 'Market', 'Ticker', 'Tickers']
 
 
-class Market(collections.UserDict):
-    """
-    Market class.
+class Market(BaseDict):
+    """Market model class.
 
     >>> limit = dict(min=10, max=1000)
     >>> precision = dict(amount=8, price=5, quote=None)
@@ -40,15 +39,34 @@ class Market(collections.UserDict):
     >>> market.fee_loaded
     True
     >>> market.precision
-    Precision(base=8, quote=8, amount=8, price=5)
+    Precision(amount: 8, price: 5, cost: 8, base: 8, quote: 8)
 
     """
 
     def __init__(self, **kwargs):
+        """Market constructor.
+
+        >>> data = {'quote': 'BTC',
+        ...         'base': 'CHAT',
+        ...         'quoteId': 'BTC',
+        ...         'baseId': 'CHAT',
+        ...         'limits': {
+        ...             'amount': {'min': 0.0, 'max': 10000000000.0},
+        ...             'price': {'min': 0.0, 'max': 10000000000.0},
+        ...             'cost': {'min': 0.0, 'max': 10000000000.0}
+        ...         },
+        ...         'precision': {
+        ...             'amount': 8,
+        ...             'price': 10,
+        ...             'cost': 8
+        ...         }
+        ... }
+        >>> Market(**data).base
+        'CHAT'
+
+        :param kwargs: param names are identical to Exchange class markets from ccxt lib.
         """
-        Market constructor.
-        """
-        super().__init__(**kwargs)
+        super(Market, self).__init__(**kwargs)
 
         self._info = self.data.get('info', dict()) or dict()
 
@@ -59,67 +77,86 @@ class Market(collections.UserDict):
         default_precision.update(**{k: v for k, v in self.data.get('precision', default_precision).items() if v})
 
         self.precision = Precision(**default_precision)
-        self.limits = Limits(**limits)
-        self.symbol = Symbol(self.data.get('symbol', ''))
-        self.base = Currency(self.data.get('base', ''))
-        self.quote = Currency(self.data.get('quote', ''))
+        self.limits = Limit(**limits)
+        # self.symbol = Symbol(self.data.get('symbol', ''))
+        # self.base = Currency(self.data.get('base', ''))
+        # self.quote = Currency(self.data.get('quote', ''))
         self.baseId, self.quoteId = self.data.get('baseId') or self.base, self.data.get('quoteId') or self.quote
-        self.fee_loaded = self.data.get('fee_loaded', False)
-        self.percentage = self.data.get('percentage', False)
-        self.tierBased = self.data.get('tierBased', False)
-        self.taker = self.data.get('taker', 0.0)
-        self.maker = self.data.get('maker', 0.0)
-        self.id = self.data.get('id', self.symbol)
-        self.active = self.data.get('active', False)
+        # self.fee_loaded = self.data.get('fee_loaded', False)
+        # self.percentage = self.data.get('percentage', False)
+        # self.tierBased = self.data.get('tierBased', False)
+        # self.taker = self.data.get('taker', 0.0)
+        # self.maker = self.data.get('maker', 0.0)
+        self.id = self.data.get('id', Symbol(self.data.get('symbol', '')))
+        # self.active = self.data.get('active', False)
+
+    def as_dict(self):
+        return {k: v for k, v in self.data.items() if v is not None}
+        # return {'fee_loaded': True,
+        #         'percentage': True,
+        #         'tierBased': False,
+        #         'taker': None,
+        #         'maker': None,
+        #         'precision': self.precision,
+        #         'limits': self.limits,
+        #         'id': self.id,
+        #         'symbol': self.symbol,
+        #         'base': self.base,
+        #         'quote': self.quote,
+        #         'baseId': self.baseId,
+        #         'quoteId': self.quoteId,
+        #         'active': True}
 
 
-class Markets(collections.UserDict):
-    """
-    Markets class.
-    """
+class Markets(col.UserDict):
+    """Markets class."""
 
     def __init__(self, **kwargs):
-        """
-        Markets class constructor.
+        """Markets class constructor.
 
         >>> Markets()
+        {}
 
         :param kwargs:
         """
         data = dict()
         for k, v in kwargs.items():
             v = {x: y for x, y in v.items() if y is not None}
-
             m = Market(**v)
-
             data.update({k: m})
 
         super().__init__(**data)
 
 
-class Ticker(collections.UserDict):
-    """
-    Represent ticker data for specific market.
-    """
+class Ticker(BaseDict):
+    """Represent ticker data for specific market."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.__dict__.update(**kwargs)
-        self.last = self.data.get('last', 0.0)
-        self.ask = self.data.get('ask', 0.0)
-        self.bid = self.data.get('bid', 0.0)
-        self.low = self.data.get('low', 0.0)
-        self.high = self.data.get('high', 0.0)
-        self.quoteVolume = self.data.get('quoteVolume', 0.0)
-        self.baseVolume = self.data.get('baseVolume', 0.0)
-        self.percentage = self.data.get('percentage', 0.0)
+        self.last = self.data.get('last', 0.0) or 0.0
+        self.ask = self.data.get('ask', 0.0) or 0.0
+        self.bid = self.data.get('bid', 0.0) or 0.0
+        self.low = self.data.get('low', 0.0) or 0.0
+        self.high = self.data.get('high', 0.0) or 0.0
+        self.quoteVolume = self.data.get('quoteVolume', 0.0) or 0.0
+        self.baseVolume = self.data.get('baseVolume', 0.0) or 0.0
+        self.percentage = self.data.get('percentage', 0.0) or 0.0
         self.id = self.data.get('percentage', '')
         self._info = self.data.get('info', dict())
 
+    # def __getattr__(self, item):
+    #     return self.data.get(item) if item not in 'data' else self.data
 
-class Tickers(collections.UserDict):
+
+class Tickers(col.UserDict):
+    """Tickers class."""
 
     def __init__(self, **kwargs):
+        """Constructor.
+
+        :param kwargs:
+        """
         data = dict.fromkeys(list(kwargs.keys()))
 
         for k, v in kwargs.items():
