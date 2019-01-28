@@ -4,7 +4,7 @@ Crypto-Currencies Trading Framework.
 
  - Author: Daniel J. Umpierrez
  - License: UNLICENSE
- - Version: 0.1.1
+ - Version: 0.1.2
 
 ## Description
 
