@@ -4,7 +4,7 @@ Crypto-Currencies Trading Framework.
 
  - Author: Daniel J. Umpierrez
  - License: UNLICENSE
- - Version: 0.1.1
+ - Version: 0.1.2
 
 ## Description
 
@@ -13,18 +13,28 @@ A Python3 trading framework with some useful features.
 
 ## Requirements
 
- - [ccxt](https://github.com/ccxt/ccxt)
- - [pandas](https://github.com/pandas-dev/pandas)
- - [tulipy](https://github.com/cirla/tulipy)
- - [cryptocmpy](https://github.com/havocesp/cryptocmpy)
- - [logging4hummans](https://github.com/havocesp/logging4hummans)
+- Python 3.6+ (may work on <= 3.5 versions but not tested)
 
 ## Installation
 
 ### Using `pip` and project **GitHub** URL.
 
 ```sh
-$ pip install --process-dependency-links "git+https://github.com/havocesp/cctf.git"
+pip install "git+https://github.com/havocesp/cctf.git"
+```
+
+### Using `pip` from Pypi repository
+
+```sh
+pip install cctf
+```
+
+### Using `git`
+
+```sh
+git clone https://github.com/havocesp/cctf.git
+cd cctf
+python setup.py install
 ```
 
 ## Usage
@@ -42,14 +52,21 @@ print(api.to('ETH))
 
 Project changes over versions.
 
+### 0.1.2
+
+ - No dependencies goal achieved and many errors and fixed.
+
 ### 0.1.1
+
 - Added dependency links in "setup.py" file.
 - Replaced builtin "logging" module by self made
 "[logging4hummans](https://github.com/havocesp/logging4hummans) " one.
 
 ### 0.1.0
+
 - Initial version
 
 ## TODO
 
-- [ ] Testing
+- [ ] Create a ticker model class.
+- [ ] Create documentation.
