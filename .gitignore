@@ -1,6 +1,9 @@
 build/*
 dist/*
-*.egg-info/
-.idea/*
+*.egg-info
+.idea
 data/*
 .mypy_cache/*
+cctf/__pycache__/*
+pandaxt/*
+cctf/data/

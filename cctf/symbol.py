@@ -8,7 +8,7 @@
 import json
 import pathlib as path
 import time
-from collections import UserDict
+from typing import Iterable as Iter, Mapping as Map, List, Text, Union as U
 
 from cctf.base import Meta, BaseDict
 from cctf.utils import get_url, get_price
@@ -19,7 +19,6 @@ _DATA_DIR.mkdir(exist_ok=True, parents=True)
 _CACHE_DIR = _DATA_DIR.joinpath('cache')
 _CACHE_DIR.mkdir(exist_ok=True, parents=True)
 _COIN_LIST_URL = 'https://min-api.cryptocompare.com/data/all/coinlist'
-
 
 __all__ = ['Symbol', 'Symbols', 'Currency', 'Currencies', 'CURRENCIES']
 
@@ -45,6 +44,14 @@ class Currencies(BaseDict):
         else:
             return self.__dict__[item]
 
+    @property
+    def names(self):
+        """Currencies names as list.
+
+        :return tp.List[tp.AnyStr]: currencies names as List[AnyStr]
+        """
+        return sorted(set(list(self.data) + ['EUR', 'USD']))
+
     def _get_metadata(self):
         """Get currencies metadata from cryptocompare site.
 
@@ -58,7 +65,6 @@ class Currencies(BaseDict):
         """
         data = dict()
 
-        # data = pd.read_json(_COIN_LIST_URL, )
         response = get_url(_COIN_LIST_URL)
 
         if isinstance(response or [], dict) and len(response):
@@ -108,14 +114,6 @@ class Currencies(BaseDict):
 
         return data
 
-    @property
-    def names(self):
-        """Currencies names as list.
-
-        :return tp.List[tp.AnyStr]: currencies names as List[AnyStr]
-        """
-        return sorted(self.data.keys()) + ['EUR', 'USD']
-
 
 CURRENCIES = globals().get('CURRENCIES', Currencies())
 
@@ -130,7 +128,7 @@ class Currency(metaclass=Meta):
         """Create a Symbol by combining the self currency as base and the other as quote.
 
         >>> Currency('BTC') + 'USD'
-        {Symbol} BTC/USD
+        (Symbol:BTC/USD)
 
         :param other: the other currency used for symbol creation.
         :type other: str or Currency
@@ -138,7 +136,8 @@ class Currency(metaclass=Meta):
         """
         other = str(other).upper()
         if other in CURRENCIES.names:
-            return Symbol('{}/{}'.format(super().__str__(), other))
+            symbol_str = '{}/{}'.format(self, other)
+            return Symbol(symbol_str)
 
     def to(self, to_currency):
         """Convert currency to other currencies contained in "to_currencies"
@@ -170,33 +169,40 @@ class Currency(metaclass=Meta):
 class Symbol(metaclass=Meta):
     """Symbol class."""
 
-    def __new__(cls, *args, **kwargs):
-        symbol = str()
-        if '/' in str(args):
-            symbol = str(args[0])
-        elif len(args) >= 2:
-            symbol = '{}/{}'.format(*args[:2])
-        elif '/' in str(kwargs.get('symbol')):
-            symbol = kwargs.get('symbol')
-        elif kwargs.get('base') and kwargs.get('quote'):
-            symbol = '{base}/{quote}'.format(**kwargs)
-        elif kwargs.get('base') and kwargs.get('base') != 'BTC':
-            symbol = '{base}/BTC'.format(**kwargs)
+    def __new__(cls, symbol=None, base=None, quote=None):
+        assert (symbol and '/' in symbol) or len(
+            [e for e in (symbol, base, quote)]) > 1, 'No symbol name or base currency was supplied.'
+        symbol = str(symbol or '')
+        if '/' in symbol:
+            symbol = symbol.upper()
+        elif symbol and base and quote is None:
+            symbol = f'{symbol}{quote}'
+        elif base and quote and symbol is None:
+            symbol = f'{base}{quote}'
+        else:
+            err_msg = f'- Symbol {symbol or "Empty"} is not valid (no "/" separator found (example: BTC/ETH).'
+            raise ValueError(err_msg)
 
-        return str.__new__(cls, str(symbol).upper())
+        if len(base or str()) and len(quote or str()):
+            symbol = f'{str(base).upper()}/{str(quote).upper()}'
+        elif len(base or str()):
+            symbol = f'{str(base).upper()}/BTC'
+
+        return str.__new__(cls, symbol)
 
     @property
     def parts(self):
         """If symbol is initialized, return base, quote Currency instances as tuple.
 
-        >>> Symbol('BTC', 'ETH').parts
-        ('BTC', 'ETH')
+        >>> Symbol('BTC/ETH').parts
+        ['BTC', 'ETH']
 
         :return tp.Tuple[Currency]: base, quote Currency instances as tuple.
         """
         if '/' in super().__str__():
-            elements = super().__str__().split('/')
-            return Currency(elements[0]), Currency(elements[1])
+            obj_str = super().__str__()
+            elements = map(Currency, obj_str.split('/'))
+            return list(elements)
 
     @property
     def base(self):
@@ -216,7 +222,9 @@ class Symbol(metaclass=Meta):
         'USD'
 
         """
-        return Currency(str(self).split('/')[1])
+        raw = str(self).split('/')
+        if len(raw) > 1:
+            return Currency(raw[1])
 
     @property
     def price(self):
@@ -276,7 +284,8 @@ class Symbol(metaclass=Meta):
             elif item == 1:
                 return self.quote
             else:
-                raise IndexError('Index should be: 0->BaseCurrency, 1->QuoteCurrency')
+                raise IndexError(
+                    'Index should be: 0->BaseCurrency, 1->QuoteCurrency')
         elif item in self:
             return self.base if item == self.parts[0] else self.quote
         raise TypeError()
@@ -312,7 +321,8 @@ class Symbol(metaclass=Meta):
         if key in '_str' or hasattr(value or '', '__call__'):
             self.__dict__.update({key: value})
         else:
-            raise AttributeError('Only a callable type could be assigned to this class as attribute.')
+            raise AttributeError(
+                'Only a callable type could be assigned to this class as attribute.')
 
     def price2precision(self):
         raise NotImplementedError()
@@ -323,31 +333,97 @@ class Symbol(metaclass=Meta):
     def cost2precision(self):
         raise NotImplementedError()
 
+    def __repr__(self):
+        """Symbol representation as str.
+
+        >>> Symbol('BTC/USD')
+        (Symbol:BTC/USD)
+
+        :return: Symbol str representation for class instances.
+        :rtype:
+        """
+        return f'(Symbol:{self})'
+
     def __str__(self):
-        """Symbol objects representation as str.
+        """Symbol representation as str.
+
+        >>> Symbol('BTC', 'USD')
+        (Symbol:USD/BTC)
 
         :return: Symbol str representation for class instances.
         :rtype:
         """
         return super().__str__()
 
-    def __repr__(self):
-        """Symbol representation as str.
 
-        :return: Symbol str representation for class instances.
-        :rtype:
-        """
-        return '{Symbol} ' + super(Symbol, self).__str__()
+class Symbols(List[U[Symbol, Text]]):
+    """Symbols list like access class."""
 
-
-class Symbols(UserDict):
-    """Symbols dict like access class."""
-
-    def __init__(self, **data):
+    def __init__(self, *symbols):
         """Constructor."""
-        super().__init__(**data)
+        symbols = list(symbols)
+        if len(symbols) == 1:
+            if isinstance(symbols[0], Text):
+                symbols = [symbols[0]]
+            elif isinstance(symbols[0], Map):
+                symbols = list(dict(**symbols[0]).keys())
+            elif isinstance(symbols[0], Iter):
+                symbols = list(symbols[0])
+        super().__init__(self._str2symbol(*symbols))
+
+    def __add__(self, other):
+        if isinstance(other, str) and '/' in other:
+            self.append(Symbol(other))
+        else:
+            raise ValueError(f'Invalid symbol {str(other)}.')
+
+    def _str2symbol(self, *symbols) -> List[Symbol]:
+        result = [Symbol(s) for s in map(str, symbols) if '/' in s]
+        return result
+
+    def extend(self, other: Iter[U[Symbol, Text]]):
+        super().extend(map(Symbol, other))
+
+
+# class Currencies(List[U[Currency, Text]]):
+#     """Currencies list like access class."""
+#
+#     def __init__(self, *currencies):
+#         """Constructor."""
+#         if len(currencies) == 1:
+#             if isinstance(currencies[0], Text):
+#                 currencies = [currencies[0]]
+#             elif isinstance(currencies[0], Map):
+#                 currencies = list(dict(**currencies[0]).keys())
+#             elif isinstance(currencies[0], Iter):
+#                 currencies = list(currencies[0])
+#         super().__init__(self._str2currency(*currencies))
+#
+#     def __add__(self, other):
+#         if isinstance(other, str) and len(other):
+#             self.append(Currency(other.upper()))
+#         else:
+#             raise ValueError(f'Invalid currency {str(other)}.')
+#
+#     def extend(self, other: Iter[U[Currency, Text]]):
+#         super().extend(map(Currency, other))
+#
+#     def _str2currency(self, *currencies):
+#         return [Currency(c) for c in map(str, currencies) if len(c.strip())]
 
 
 if __name__ == '__main__':
-    s = Symbol('BTC', 'USDT')
-    print(s.price)
+    print(len(Currencies().names))
+    # symbol = 'MATIC/USDT'
+    # symbols = Symbols(symbol, Symbol('LINK/USDT'))
+    # symbols.extend(['BTT/USDT', 'CELR/USDT'])
+    #
+    # for s in symbols:
+    #     print(s)
+    # btc = Currency('BTC')
+    # usdt = Currency('USDT')
+    # s = Symbol('BTC', quote='USDT')
+    # print(btc)
+    # print(usdt)
+    # print(btc + usdt)
+    # print(s)

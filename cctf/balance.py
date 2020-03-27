@@ -26,8 +26,11 @@ class Balance(col.UserDict):
         """
         self._precision = 8
 
-        if kwargs.get('currency') and kwargs.get('currency') in CURRENCIES.names:
-            kwargs['currency'] = Currency(kwargs.get('currency'))  # type: Currency
+        currency = kwargs.get('currency')
+        currency = Currency(currency or str())
+
+        if currency in CURRENCIES.names:
+            kwargs['currency'] = currency  # type: Currency
 
         super().__init__(**kwargs)
 
@@ -44,7 +47,7 @@ class Balance(col.UserDict):
 
         :return float: used balance
         """
-        return self.data.get('used', 0.0)
+        return round(self.data.get('used', 0.0), 8)
 
     @used.setter
     def used(self, value):
@@ -52,7 +55,7 @@ class Balance(col.UserDict):
 
         :param float value: value to be assigned
         """
-        self.data.update(used=value or 0.0)
+        self.data.update(used=round(value or 0.0, 8))
 
     @property
     def total(self):
@@ -60,7 +63,7 @@ class Balance(col.UserDict):
 
         :return float: total balance
         """
-        return self.data.get('total', 0.0)
+        return round(self.data.get('total', 0.0), 8)
 
     @total.setter
     def total(self, value):
@@ -69,7 +72,7 @@ class Balance(col.UserDict):
 
         :param float value: value to be assigned
         """
-        self.data.update(total=value or 0.0)
+        self.data.update(total=round(value or 0.0, 8))
 
     @property
     def free(self):
@@ -77,7 +80,7 @@ class Balance(col.UserDict):
 
         :return float: free balance
         """
-        return self.data.get('free', 0.0)
+        return round(self.data.get('free', 0.0), 8)
 
     @free.setter
     def free(self, value):
@@ -85,7 +88,7 @@ class Balance(col.UserDict):
 
         :param float value: value to be assigned
         """
-        self.data.update(free=value or 0.0)
+        self.data.update(free=round(value or 0.0, 8))
 
     def to(self, currency):
         """Get balance amount value by using "currencies" price ratio.
@@ -107,12 +110,12 @@ class Balance(col.UserDict):
         # >>> isinstance(conversion, float)
         True
 
-        :param currencies: currencies used for conversion.
-        :param int timestamp: number of seconds since 1970 (unix epoch)
+        :param currency: currencies used for conversion.
+        # :param int timestamp: number of seconds since 1970 (unix epoch)
         :return: price as float if one currency is supplied for conversion, otherwise a dict type will be returned.
         :rtype: float or dict
         """
-        if currency is not None and isinstance(currency or 0, str):
+        if isinstance(currency or 0, str):
             currency = Currency(currency)
         else:
             raise ValueError('Value for "currency" should be str type.')
@@ -130,10 +133,10 @@ class Balance(col.UserDict):
 
         :return float: conversion result as float
         """
-        if self.currency != 'EUR':
-            return self.currency.to('EUR') * self.total
+        if self.currency != 'EUR' and hasattr(self.currency, 'to'):
+            return round(self.currency.to('EUR') * self.total, 5)
         else:
-            return self.total
+            return round(self.total, 5)
 
     @property
     def to_usd(self):
@@ -146,10 +149,10 @@ class Balance(col.UserDict):
 
         :return float: conversion result as float
         """
-        if self.currency != 'USD':
-            return self.currency.to('USD') * self.total
+        if 'USD' not in self.currency and self.currency != 'PAX' and hasattr(self.currency, 'to'):
+            return round(self.currency.to('USD') * self.total, 5)
         else:
-            return self.total
+            return round(self.total, 5)
 
     @property
     def to_btc(self):
@@ -162,10 +165,13 @@ class Balance(col.UserDict):
 
         :return float: conversion result as float
         """
-        if self.currency != 'BTC':
-            return self.currency.to('BTC') * self.total
-        else:
-            return self.total
+        try:
+            if self.currency != 'BTC':
+                return round(self.currency.to('BTC') * self.total, 8)
+            else:
+                return round(self.total, 8)
+        except AttributeError:
+            return None
 
     def __float__(self):
         """Return total balance as float.
@@ -228,12 +234,24 @@ class Wallet(tp.Dict[str, Balance]):
             for b in args:
                 kwargs.update(**b.dict)
             # kwargs.update({str(b.currency): b.dict for b in args})
-        super().__init__(**{str(k): Balance(currency=k, **(dict(total=v) if isinstance(v, float) else v)) for k, v in
-                            kwargs.items()})
+        super().__init__(**{Currency(k): Balance(currency=k, **(dict(total=v) if isinstance(v, float) else v))
+                            for k, v in kwargs.items()})
 
     @property
     def currencies(self):
         return [c for c in sorted(self.keys())]
+
+    @property
+    def total_btc(self):
+        return sum([c.to_btc for c in sorted(self.values())])
+
+    @property
+    def total_usd(self):
+        return sum([c.to_usd for c in sorted(self.values())])
+
+    @property
+    def total_eur(self):
+        return sum([c.to_eur for c in sorted(self.values())])
 
     def __contains__(self, item):
         return str(item) in self.keys()

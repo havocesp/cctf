@@ -5,47 +5,37 @@
 # Description:  $Description$
 # -------------------------------------------------
 
-function cmd_exist()
-{
-    if which "${1:-NULL}" &> /dev/null;then
+function cmd_exist() {
+    if command -v "${1:-NULL}" &>/dev/null; then
         return 0
     else
         return 1
     fi
 }
 
-function git_exists()
-{
+function git_exists() {
     cmd_exist git
 }
-function pip_exists()
-{
+function pip_exists() {
     cmd_exist pip"${1:-}"
 }
-function python3_exists()
-{
+function python3_exists() {
     if cmd_exist python3; then
         python3 -m pip --version
     fi
 }
 
-function python_numeric_version()
-{
+function python_numeric_version() {
     exec 2>&1
-    python"${1:-}" -V  -V 2>&1 | cut -zc8,10
+    python"${1:-}" -V -V 2>&1 | cut -zc8,10
     exec
 }
 
-
-
-if git_exists
-then
+if git_exists; then
     echo " - [FOUND] git"
-    if cmd_exist python3
-    then
+    if cmd_exist python3; then
         echo " - [FOUND] python 3"
-    elif python_exists && (($(python3 -V 2>&1 | grep -oE '[2-9]' | tr -d '\n')>350))
-    then
+    elif python_exists && (($(python3 -V 2>&1 | grep -oE '[2-9]' | tr -d '\n') > 350)); then
         echo " - [FOUND] python"
     else
         echo " - [ERROR] git command could not be located please install it and try again."
@@ -56,18 +46,15 @@ else
     exit 1
 fi
 
-if ! which python3 &> /dev/null && ! which python &> /dev/null
-then
+if ! command -v python3 &>/dev/null && ! command -v python &>/dev/null; then
     echo " - [ERROR] python3 could not be located please install it and try again."
 fi
 
-if ! which pip3 &> /dev/null && ! which pip &> /dev/null
-then
+if ! command -v pip3 &>/dev/null && ! command -v pip &>/dev/null; then
     echo " - [ERROR] python3 could not be located please install it and try again."
 fi
 
-if [ -d './venv' ] && [ -f './venv/bin/activate' ]
-then
+if [ -d './venv' ] && [ -f './venv/bin/activate' ]; then
 
     echo "Activating python virtual environment ... "
     source './venv/bin/activate'
@@ -83,9 +70,6 @@ echo "Installing clinance ..."
 pip install -U . || pip3 install -U .
 
 echo "DONE"
-if declare | grep -iq -E  ^deactivate
-then
-    deactivate &> /dev/null
+if declare | grep -iq -E ^deactivate; then
+    deactivate &>/dev/null
 fi
-
-
