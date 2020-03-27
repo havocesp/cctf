@@ -57,9 +57,6 @@ Project changes over versions.
  - New requests dependency
  - Some code routines has been simplified
  - Many minor fixes
-
-### 0.1.3
-
  - Modified some classes structure to get closer to 'ccxt' model.
 
 ### 0.1.2
