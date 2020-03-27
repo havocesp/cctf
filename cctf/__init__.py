@@ -20,7 +20,7 @@ __package__ = 'cctf'
 __description__ = __doc__
 __author__ = 'Daniel J. Umpierrez'
 __version__ = '0.1.2'
-__license__ = 'UNLICENSE'
+__license__ = 'LGPL-3.0'
 __site__ = 'https://github.com/havocesp/{}'.format(__package__)
 __email__ = 'umpierrez@pm.me'
 
