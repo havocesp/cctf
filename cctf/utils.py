@@ -27,7 +27,7 @@ _HEADERS = {
 }
 
 
-def get_url(url, params=None, retries=1, wait_secs=15, verbose=True) -> str:
+def get_url(url, params=None, retries=1, wait_secs=15, verbose=True) -> tp.Union[dict, str]:
     """Read URL content and return it as str type.
 
     >>> response = get_url(_PRICE_URL, params={'fsym': 'BTC', 'tsym': 'USD'})
@@ -102,11 +102,11 @@ def get_price(base, quote=None, timestamp=None) -> float:
         params.update(toTs=timestamp)
     # url = _PRICE_URL.format(params)
     result = get_url(_PRICE_URL, params=params)
-    if result.get('Response', '') == 'Success':
+    if isinstance(result, dict) and result.get('Response', '') == 'Success':
         result = result.get('Data', result).get('Data', result)
         return round(sum([result[1]['open'], result[1]['close']]) / 2, 8)
 
-    return result.get(quote.upper())
+    return result.get(quote.upper()) if isinstance(result, dict) else result
 
 
 # def get_price(fsyms: tp.Union[tp.Sequence[tp.Text], tp.Text],
@@ -168,7 +168,7 @@ def flt(value, p=None, as_str=False):
         return value
 
 
-def auto_precision(num) -> int:
+def auto_precision(num) -> float:
     """Infer precision base on number size.
 
     >>> auto_precision(0.34388)
@@ -178,8 +178,7 @@ def auto_precision(num) -> int:
     >>> auto_precision(12300)
     12300
 
-    :param float number: number used to infer precision.
-    :param int max_precision: max precision permitted (default 8).
+    :param float num: number used to infer precision.
     :return: precision as int (number of decimals recommended)
     """
     try:

@@ -115,7 +115,6 @@ class Currencies(BaseDict):
         return data
 
 
-
 CURRENCIES = globals().get('CURRENCIES', Currencies())
 
 
@@ -181,7 +180,7 @@ class Symbol(metaclass=Meta):
         elif base and quote and symbol is None:
             symbol = f'{base}{quote}'
         else:
-            err_msg = f'- Symbol {symbol or "Empty"} is not valid symbol. Currencies are not separed by "/" char (example: BTC/ETH).'
+            err_msg = f'- Symbol {symbol or "Empty"} is not valid (no "/" separator found (example: BTC/ETH).'
             raise ValueError(err_msg)
 
         if len(base or str()) and len(quote or str()):

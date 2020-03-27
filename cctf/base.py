@@ -52,7 +52,6 @@ class BaseDict(UserDict):
         """
         return self.values()
 
-
     @property
     def to_dict(self):
         """Return a Dict[AntStr, float] type containing Limit values.
@@ -134,7 +133,7 @@ class BaseDict(UserDict):
 class Limit:
     """Limits class with amount, price and cost attributes."""
 
-    def __init__(self, amount=None, price=None, cost=None, market=None, **kwargs):
+    def __init__(self, amount=None, price=None, cost=None, market=None):
         """Initialize Limits class with amount, price and cost values.
 
         >>> amount = dict(min=0, max=100)
@@ -187,7 +186,7 @@ class Precision:
 
     """
 
-    def __init__(self, amount=8, price=8, cost=8, base=8, quote=8, **kwargs):
+    def __init__(self, amount=8, price=8, cost=8, base=8, quote=8):
         """Precision constructor.
 
         :param int base:  base currency precision (default 8).
