@@ -6,15 +6,16 @@
  - License:     UNLICENSE
 """
 import collections as col
-import http.client as http
 import json
 import sys
 import time
 import typing as tp
-import urllib.request as rq
-from urllib.parse import urlencode
 
-_PRICE_URL = 'https://min-api.cryptocompare.com/data/price?{}'
+import requests
+
+_PRICE_URL = 'https://min-api.cryptocompare.com/data/v2/histoday'
+
+# _PRICE_URL = 'https://min-api.cryptocompare.com/data/price?{}'
 
 _USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:64.0) Gecko/20100101 Firefox/64.0'
 
@@ -26,12 +27,11 @@ _HEADERS = {
 }
 
 
-def get_url(url, params=None, retries=1, wait_secs=15, verbose=True):
+def get_url(url, params=None, retries=1, wait_secs=15, verbose=True) -> str:
     """Read URL content and return it as str type.
 
-    >>> url = 'https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD'
-    >>> response = get_url(url, params={'fsym': 'BTC', 'tsym': 'USD'})
-    >>> isinstance(response, dict) and 'USD' in  response.keys()
+    >>> response = get_url(_PRICE_URL, params={'fsym': 'BTC', 'tsym': 'USD'})
+    >>> isinstance(response, dict) and response['Data']['Data'][0]['close'] > 0.0
     True
 
     :param str url: URL to retrieve as str.
@@ -39,35 +39,24 @@ def get_url(url, params=None, retries=1, wait_secs=15, verbose=True):
     :param int retries: max retries, if retries value is negative there is no attempts limit (default -1)
     :param int wait_secs: sleep time in secs between retries.
     :param bool verbose: if True all catches errors will be reported to stderr.
-    :return str: raw url content as str type. In case of error, an empty string will be returned.
+    :return: raw url content as str type. In case of error, an empty string will be returned.
     """
-
     while retries > 0:
         try:
-            # handler = rq.urlopen()  # type: rq.OpenerDirector
-            params = urlencode(params or dict())
-            request = rq.Request(url, headers=_HEADERS)
-            response = rq.urlopen(request)  # type: http.HTTPResponse
-            response = response.read()  # type: bytes
-            response = response.decode(encoding='utf8')
             try:
-                response = json.loads(response)
+                result = requests.get(url, params=params, headers=_HEADERS)
+                if result.ok and 'json' in result.headers['Content-Type']:
+                    return result.json()
+                else:
+                    result.raise_for_status()
             except (json.JSONDecodeError, ValueError) as err:
                 pass
-                # print('"cctf.utils::get_url": {}'.format(str(err)))
-            return response
-        except http.InvalidURL:
-            print('{} is not a valid URL'.format(str(url)))
-            return str()
-        except http.HTTPException as err:
+        except requests.RequestException as err:
             if verbose:
                 print(str(err), file=sys.stderr)
                 print(' - Retrying', file=sys.stderr)
             retries -= 1
             time.sleep(wait_secs)
-        except IOError as err:
-            return str(err)
-
         except KeyboardInterrupt:
             return str()
 
@@ -91,27 +80,32 @@ def _params(params):
     return params
 
 
-def get_price(base, quote=None):
+def get_price(base, quote=None, timestamp=None) -> float:
     """Get price for a symbol from CryptoCompare.com
 
     >>> price = get_price('TRX')
     >>> isinstance(price, float) and price > 0.0
     True
 
+    :param timestamp: return historical price at supplied timestamp.
     :param base: base currency.
     :type base: str or Currency
     :param quote: quote currency (default BTC).
     :type quote: str or Currency
     :return: current price for supplied currency pair.
-    :rtype: float
     """
     quote = str(quote or 'BTC').strip(' T')
     if quote not in ['BTC', 'EUR', 'USD']:
         quote = 'BTC'
-    params = {'fsym': base.upper(), 'tsyms': quote.upper()}
-    params = urlencode(params)
-    url = _PRICE_URL.format(params)
-    result = get_url(url)
+    params = dict(fsym=base.upper(), tsym=quote.upper())
+    if timestamp and isinstance(timestamp, int) and timestamp > 0:
+        params.update(toTs=timestamp)
+    # url = _PRICE_URL.format(params)
+    result = get_url(_PRICE_URL, params=params)
+    if result.get('Response', '') == 'Success':
+        result = result.get('Data', result).get('Data', result)
+        return round(sum([result[1]['open'], result[1]['close']]) / 2, 8)
+
     return result.get(quote.upper())
 
 
@@ -172,6 +166,34 @@ def flt(value, p=None, as_str=False):
         return int(value)
     else:
         return value
+
+
+def auto_precision(num) -> int:
+    """Infer precision base on number size.
+
+    >>> auto_precision(0.34388)
+    0.3439
+    >>> auto_precision(0.0001343)
+    0.0001343
+    >>> auto_precision(12300)
+    12300
+
+    :param float number: number used to infer precision.
+    :param int max_precision: max precision permitted (default 8).
+    :return: precision as int (number of decimals recommended)
+    """
+    try:
+        num = float(num)
+    except ValueError:
+        return num
+
+    if num is not None and isinstance(num, float):
+        for v in [(e, 10000.0 / (10 ** e)) for e in range(8, 0, -1)]:
+            precision, cutoff = v
+            if num < cutoff:
+                return round(num, precision)
+        else:
+            return round(num)
 
 
 def infer_precision(number):

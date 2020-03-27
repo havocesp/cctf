@@ -1,14 +1,14 @@
 import abc
 from collections import UserDict
 from decimal import Decimal
-from typing import (List, Tuple, Any, Dict, SupportsFloat, NoReturn, SupportsInt, ItemsView, KeysView,
+from typing import (List, Tuple, Any, Dict, NoReturn, ItemsView, KeysView,
                     ValuesView, Text, Type, TypeVar)
 
 K = KeysView
 V = ValuesView
 KV = ItemsView
-Int = SupportsInt
-Float = SupportsFloat
+Int = int
+Float = float
 
 Num = TypeVar['Num', Int, Float, Decimal]
 Bool = Type[bool]
@@ -51,8 +51,8 @@ class BaseDict(UserDict):
 
 
 class Range(BaseDict):
-    MIN: SupportsFloat
-    MAX: SupportsFloat
+    MIN: Float
+    MAX: Float
 
     def __init__(self, **kwargs: Int) -> NoReturn:
         super().__init__(**kwargs)

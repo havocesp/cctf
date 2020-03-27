@@ -43,14 +43,24 @@ python setup.py install
 
 ```python
 import cctf
-api = Currency('BTC')
-print(api.to('ETH))
+api = cctf.Currency('BTC')
+print(api.to('ETH'))
 # 0.0343
 ```
 
 ## Changelog
 
 Project changes over versions.
+
+### 0.1.4
+
+ - New requests dependency
+ - Some code routines has been simplified
+ - Many minor fixes
+
+### 0.1.3
+
+ - Modified some classes structure to get closer to 'ccxt' model.
 
 ### 0.1.2
 

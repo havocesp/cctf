@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 
-from setuptools import setup, find_packages
-
 import cctf
+from setuptools import setup, find_packages
 
 classifiers = [
     'Development Status :: 5 - Production',
