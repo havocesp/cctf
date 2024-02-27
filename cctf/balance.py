@@ -243,15 +243,15 @@ class Wallet(tp.Dict[str, Balance]):
 
     @property
     def total_btc(self):
-        return sum([c.to_btc for c in sorted(self.values())])
+        return sum(c.to_btc for c in sorted(self.values()))
 
     @property
     def total_usd(self):
-        return sum([c.to_usd for c in sorted(self.values())])
+        return sum(c.to_usd for c in sorted(self.values()))
 
     @property
     def total_eur(self):
-        return sum([c.to_eur for c in sorted(self.values())])
+        return sum(c.to_eur for c in sorted(self.values()))
 
     def __contains__(self, item):
         return str(item) in self.keys()
