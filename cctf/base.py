@@ -111,8 +111,7 @@ class BaseDict(UserDict):
         :return: self.data value for item key.
         :raise AttributeError:
         """
-        temp_data = super().__dict__.get('data')
-        if temp_data is None:
+        if (temp_data := super().__dict__.get('data')) is None:
             raise AttributeError(f'{item} not in data.')
         elif item not in 'data' and item in temp_data:
             return temp_data[item]
