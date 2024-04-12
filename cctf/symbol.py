@@ -318,7 +318,7 @@ class Symbol(metaclass=Meta):
             return any(str(item) == c for c in map(str, currencies))
 
     def __setattr__(self, key, value):
-        if key in '_str' or hasattr(value or '', '__call__'):
+        if key in '_str' or callable(value or ''):
             self.__dict__.update({key: value})
         else:
             raise AttributeError(
