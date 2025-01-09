@@ -12,6 +12,7 @@ import time
 import typing as tp
 
 import requests
+from security import safe_requests
 
 _PRICE_URL = 'https://min-api.cryptocompare.com/data/v2/histoday'
 
@@ -44,7 +45,7 @@ def get_url(url, params=None, retries=1, wait_secs=15, verbose=True) -> tp.Union
     while retries > 0:
         try:
             try:
-                result = requests.get(url, params=params, headers=_HEADERS)
+                result = safe_requests.get(url, params=params, headers=_HEADERS)
                 if result.ok and 'json' in result.headers['Content-Type']:
                     return result.json()
                 else:
