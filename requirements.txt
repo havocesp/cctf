@@ -1,1 +1,2 @@
 requests
+security==1.3.1
